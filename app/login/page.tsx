@@ -10,19 +10,24 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      alert("Login successful!");
-      router.push("/user/dashboard");
-    } catch (error: any) {
+const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    alert("Login successful!");
+    router.push("/user/dashboard");
+  } catch (error: unknown) {
+    if (error instanceof Error) {
       alert(error.message);
-    } finally {
-      setLoading(false);
+    } else {
+      alert("An unexpected error occurred.");
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-950 text-white">

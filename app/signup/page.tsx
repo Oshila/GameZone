@@ -29,9 +29,14 @@ export default function SignupPage() {
 
       alert("Signup successful!");
       router.push("/login");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      // Narrow the error type safely
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert("An unexpected error occurred.");
+      }
       console.error(error);
-      alert(error.message);
     } finally {
       setLoading(false);
     }
