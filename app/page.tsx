@@ -13,11 +13,14 @@ import {
   Check,
   ArrowRight,
   Gamepad2,
+  ShoppingBag,
+  ChevronLeft,
 } from "lucide-react";
 
 const Homepage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,6 +29,43 @@ const Homepage = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Auto-slide for marketplace
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % marketplaceItems.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const marketplaceItems = [
+    {
+      title: "Merlin Marketplace",
+      description: "Get premium CODM accounts, CP top-ups, and exclusive items at unbeatable prices",
+      image: "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=800",
+      features: ["Legendary Accounts", "CP Top-Up", "Mythic Weapons", "Battle Pass"],
+      price: "From ₦8,000",
+      link: "https://wa.link/4zwtx9",
+      gradient: "from-purple-600 to-blue-600"
+    },
+    {
+      title: "Gaming Thumb Sleeves",
+      description: "Professional gaming thumb sleeves for enhanced gameplay and precision control",
+      image: "https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=800",
+      features: ["Sweat-proof", "Ultra Sensitive", "Anti-slip", "Universal Fit"],
+      price: "₦2,000",
+      link: "https://wa.link/nc4ese",
+      gradient: "from-orange-600 to-red-600"
+    }
+  ];
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % marketplaceItems.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + marketplaceItems.length) % marketplaceItems.length);
+  };
 
   const features = [
     {
@@ -78,7 +118,6 @@ const Homepage = () => {
       image: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800",
     },
   ];
-
 
   const pricingPlans = [
     {
@@ -141,6 +180,12 @@ const Homepage = () => {
                 Features
               </a>
               <a
+                href="#marketplace"
+                className="text-gray-700 hover:text-purple-600 transition font-medium"
+              >
+                Marketplace
+              </a>
+              <a
                 href="#pricing"
                 className="text-gray-700 hover:text-purple-600 transition font-medium"
               >
@@ -185,6 +230,12 @@ const Homepage = () => {
                 className="block text-gray-700 hover:text-purple-600 py-2"
               >
                 Features
+              </a>
+              <a
+                href="#marketplace"
+                className="block text-gray-700 hover:text-purple-600 py-2"
+              >
+                Marketplace
               </a>
               <a
                 href="#pricing"
@@ -292,7 +343,7 @@ const Homepage = () => {
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
               Why Choose{" "}
               <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                GameVerse
+                GameZone
               </span>
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -376,6 +427,118 @@ const Homepage = () => {
         </div>
       </section>
 
+      {/* Marketplace Section */}
+      <section id="marketplace" className="py-20 px-4 bg-gradient-to-br from-gray-900 to-gray-800 relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-purple-600 rounded-full filter blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-600 rounded-full filter blur-3xl"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-lg px-4 py-2 rounded-full mb-4">
+              <ShoppingBag className="w-5 h-5 text-purple-400" />
+              <span className="text-white font-semibold">Marketplace</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              Level Up Your{" "}
+              <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                Gaming Gear
+              </span>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Premium gaming products and services to enhance your performance
+            </p>
+          </div>
+
+          {/* Slider */}
+          <div className="relative max-w-5xl mx-auto">
+            <div className="overflow-hidden rounded-3xl">
+              <div 
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {marketplaceItems.map((item, idx) => (
+                  <div key={idx} className="w-full flex-shrink-0">
+                    <div className="bg-white/5 backdrop-blur-lg rounded-3xl overflow-hidden border border-white/10">
+                      <div className="grid md:grid-cols-2 gap-8 p-8">
+                        {/* Image Side */}
+                        <div className="relative h-80 md:h-auto rounded-2xl overflow-hidden group">
+                          <Image
+                            src={item.image}
+                            alt={item.title}
+                            width={500}
+                            height={400}
+                            className="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+                          />
+                          <div className={`absolute inset-0 bg-gradient-to-t ${item.gradient} opacity-20`}></div>
+                          <div className="absolute top-4 right-4 bg-yellow-400 text-gray-900 px-4 py-2 rounded-full font-bold text-sm">
+                            {item.price}
+                          </div>
+                        </div>
+
+                        {/* Content Side */}
+                        <div className="flex flex-col justify-center">
+                          <h3 className="text-3xl font-bold text-white mb-4">{item.title}</h3>
+                          <p className="text-gray-300 mb-6 text-lg">{item.description}</p>
+                          
+                          <div className="grid grid-cols-2 gap-3 mb-6">
+                            {item.features.map((feature, featureIdx) => (
+                              <div key={featureIdx} className="flex items-center gap-2">
+                                <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${item.gradient}`}></div>
+                                <span className="text-gray-300 text-sm">{feature}</span>
+                              </div>
+                            ))}
+                          </div>
+
+                          <a
+                            href={item.link}
+                            className={`inline-flex items-center justify-center gap-2 bg-gradient-to-r ${item.gradient} text-white px-8 py-4 rounded-xl font-semibold hover:shadow-2xl transition transform hover:scale-105`}
+                          >
+                            Shop Now <ArrowRight className="w-5 h-5" />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Navigation Arrows */}
+            <button
+              onClick={prevSlide}
+              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-lg hover:bg-white/20 p-3 rounded-full transition"
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="w-6 h-6 text-white" />
+            </button>
+            <button
+              onClick={nextSlide}
+              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 backdrop-blur-lg hover:bg-white/20 p-3 rounded-full transition"
+              aria-label="Next slide"
+            >
+              <ChevronRight className="w-6 h-6 text-white" />
+            </button>
+
+            {/* Dots Indicator */}
+            <div className="flex justify-center gap-2 mt-6">
+              {marketplaceItems.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx)}
+                  className={`w-3 h-3 rounded-full transition ${
+                    currentSlide === idx ? "bg-white w-8" : "bg-white/30"
+                  }`}
+                  aria-label={`Go to slide ${idx + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
       <section id="pricing" className="py-20 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
@@ -449,7 +612,7 @@ const Homepage = () => {
       <footer className="bg-gray-900 text-gray-300 py-12 px-4">
         <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
           <div>
-            <h4 className="text-white font-bold text-xl mb-4">GameVerse</h4>
+            <h4 className="text-white font-bold text-xl mb-4">GameZone</h4>
             <p className="text-gray-400">
               {"Nigeria's premier platform for gaming tournaments and sports competitions."}
             </p>
@@ -468,6 +631,11 @@ const Homepage = () => {
                 </a>
               </li>
               <li>
+                <a href="#marketplace" className="hover:text-white">
+                  Marketplace
+                </a>
+              </li>
+              <li>
                 <a href="#pricing" className="hover:text-white">
                   Pricing
                 </a>
@@ -481,10 +649,10 @@ const Homepage = () => {
           </div>
           <div>
             <h4 className="text-white font-bold text-xl mb-4">Contact</h4>
-            <p>Email: support@gameverse.com</p>
-            <p>Phone: +234 800 123 4567</p>
+            <p>Email: support@gamezone.com</p>
+            <p>Phone: +234 91 666 93315</p>
             <p className="mt-4 text-gray-500 text-sm">
-              &copy; 2025 GameVerse. All rights reserved.
+              &copy; 2025 GameZone. All rights reserved.
             </p>
           </div>
         </div>
