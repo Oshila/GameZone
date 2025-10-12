@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import {
   collection,
@@ -12,6 +12,7 @@ import {
   where,
   doc,
   getDoc,
+  Timestamp,
 } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { LogOut, CheckCircle, Calendar, Users, Clock, Trophy, Medal, TrendingUp, Star } from "lucide-react";
@@ -30,7 +31,7 @@ type PaymentRequest = {
   id: string;
   eventId: string;
   status: "pending" | "approved" | "rejected";
-  createdAt: any;
+  createdAt: Timestamp | null;
 };
 
 type UserRegistration = {
@@ -39,11 +40,11 @@ type UserRegistration = {
   slot: number;
   teamName?: string;
   position?: number;
-  registeredAt: any;
+  registeredAt: Timestamp | null;
 };
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [payments, setPayments] = useState<Record<string, boolean>>({});
   const [paymentRequests, setPaymentRequests] = useState<Record<string, PaymentRequest>>({});
@@ -70,7 +71,7 @@ export default function DashboardPage() {
       setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [router]);
 
   const fetchEvents = async () => {
     try {
@@ -131,13 +132,13 @@ export default function DashboardPage() {
         query(collection(db, "paymentRequests"), where("userId", "==", uid))
       );
       const requestsObj: Record<string, PaymentRequest> = {};
-      requestsSnap.docs.forEach((doc) => {
-        const data = doc.data();
+      requestsSnap.docs.forEach((docSnapshot) => {
+        const data = docSnapshot.data();
         requestsObj[data.eventId] = {
-          id: doc.id,
+          id: docSnapshot.id,
           eventId: data.eventId,
           status: data.status,
-          createdAt: data.createdAt,
+          createdAt: data.createdAt || null,
         };
       });
       setPaymentRequests(requestsObj);
@@ -154,15 +155,15 @@ export default function DashboardPage() {
       const regsObj: Record<string, UserRegistration> = {};
       const regsList: UserRegistration[] = [];
       
-      regsSnap.docs.forEach((doc) => {
-        const data = doc.data();
-        const reg = {
-          id: doc.id,
+      regsSnap.docs.forEach((docSnapshot) => {
+        const data = docSnapshot.data();
+        const reg: UserRegistration = {
+          id: docSnapshot.id,
           eventId: data.eventId,
           slot: data.slot,
           teamName: data.teamName,
           position: data.position,
-          registeredAt: data.registeredAt,
+          registeredAt: data.registeredAt || null,
         };
         regsObj[data.eventId] = reg;
         regsList.push(reg);
@@ -481,7 +482,7 @@ export default function DashboardPage() {
                         {registration && (
                           <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-3 mb-3">
                             <p className="text-sm font-bold text-green-800 flex items-center gap-2 mb-1">
-                              <Trophy size={16} className="text-green-600" /> You're Registered!
+                              <Trophy size={16} className="text-green-600" /> You&apos;re Registered!
                             </p>
                             <div className="flex gap-4 text-xs text-green-700">
                               <span>🎯 Team: <strong>{registration.teamName || `Team ${registration.slot}`}</strong></span>
