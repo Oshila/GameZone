@@ -216,7 +216,7 @@ const Homepage = () => {
             <div>
               <div className="inline-block mb-4">
                 <span className="bg-purple-100 text-purple-700 px-4 py-2 rounded-full text-sm font-semibold">
-                  🎮 Nigeria's Premier Gaming Platform
+                  {"🎮 Nigeria's Premier Gaming Platform"}
                 </span>
               </div>
               <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
