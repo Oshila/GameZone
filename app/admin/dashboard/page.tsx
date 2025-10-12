@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import {
   collection,
@@ -14,6 +14,7 @@ import {
   doc,
   setDoc,
   updateDoc,
+  DocumentData,
 } from "firebase/firestore";
 import {
   Calendar,
@@ -32,13 +33,54 @@ import {
 } from "lucide-react";
 import { saveAs } from "file-saver";
 
+interface EventData extends DocumentData {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  price: number;
+  slots: number;
+}
+
+interface RegistrationData extends DocumentData {
+  id: string;
+  userId: string;
+  userEmail: string;
+  eventId: string;
+  slot: number;
+  teamName?: string;
+  position?: number;
+}
+
+interface UserData extends DocumentData {
+  id: string;
+  email: string;
+  uid: string;
+  username?: string;
+  role?: string;
+}
+
+interface PaymentRequestData extends DocumentData {
+  id: string;
+  userId: string;
+  userEmail: string;
+  eventId: string;
+  eventTitle: string;
+  eventPrice: number;
+  status: string;
+  rejectionReason?: string;
+  createdAt?: {
+    toDate: () => Date;
+  };
+}
+
 export default function AdminDashboard() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [events, setEvents] = useState<any[]>([]);
-  const [registrations, setRegistrations] = useState<any[]>([]);
-  const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [paymentRequests, setPaymentRequests] = useState<any[]>([]);
+  const [events, setEvents] = useState<EventData[]>([]);
+  const [registrations, setRegistrations] = useState<RegistrationData[]>([]);
+  const [allUsers, setAllUsers] = useState<UserData[]>([]);
+  const [paymentRequests, setPaymentRequests] = useState<PaymentRequestData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedEventForResults, setSelectedEventForResults] = useState<string | null>(null);
   const [newEvent, setNewEvent] = useState({
@@ -74,7 +116,7 @@ export default function AdminDashboard() {
     });
 
     return () => unsub();
-  }, []);
+  }, [router]);
 
   const fetchData = async () => {
     const eventsSnap = await getDocs(collection(db, "events"));
@@ -82,10 +124,10 @@ export default function AdminDashboard() {
     const usersSnap = await getDocs(collection(db, "users"));
     const requestsSnap = await getDocs(collection(db, "paymentRequests"));
 
-    setEvents(eventsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    setRegistrations(regsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    setAllUsers(usersSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    setPaymentRequests(requestsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    setEvents(eventsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as EventData)));
+    setRegistrations(regsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as RegistrationData)));
+    setAllUsers(usersSnap.docs.map((d) => ({ id: d.id, ...d.data() } as UserData)));
+    setPaymentRequests(requestsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as PaymentRequestData)));
   };
 
   const handleLogout = async () => {
@@ -115,12 +157,14 @@ export default function AdminDashboard() {
     await fetchData();
   };
 
-  const handleEditEvent = async (event: any) => {
+  const handleEditEvent = async (event: EventData) => {
     const title = prompt("Event Title:", event.title) || event.title;
     const description = prompt("Description:", event.description) || event.description;
     const date = prompt("Date (YYYY-MM-DD):", event.date) || event.date;
-    const price = parseInt(prompt("Price:", event.price) || event.price);
-    const slots = parseInt(prompt("Available Slots:", event.slots) || event.slots);
+    const priceStr = prompt("Price:", event.price.toString());
+    const price = priceStr ? parseInt(priceStr) : event.price;
+    const slotsStr = prompt("Available Slots:", event.slots.toString());
+    const slots = slotsStr ? parseInt(slotsStr) : event.slots;
 
     await updateDoc(doc(db, "events", event.id), { title, description, date, price, slots });
     await fetchData();
@@ -145,25 +189,7 @@ export default function AdminDashboard() {
     saveAs(blob, `event_${eventId}_registrations.csv`);
   };
 
-  const handleMarkPaid = async (reg: any) => {
-    if (!confirm(`Mark registration for user ${reg.userEmail} as PAID?`)) return;
-
-    await setDoc(
-      doc(db, "payments", reg.userId, "events", reg.eventId),
-      {
-        uid: reg.userId,
-        eventId: reg.eventId,
-        paid: true,
-        paidAt: new Date(),
-        reference: "manual-admin",
-      }
-    );
-
-    await fetchData();
-    alert("✅ Payment marked as paid!");
-  };
-
-  const handleApprovePayment = async (request: any) => {
+  const handleApprovePayment = async (request: PaymentRequestData) => {
     if (!confirm(`Approve payment for ${request.userEmail} for event "${request.eventTitle}"?`))
       return;
 
@@ -182,7 +208,7 @@ export default function AdminDashboard() {
       await updateDoc(doc(db, "paymentRequests", request.id), {
         status: "approved",
         approvedAt: new Date(),
-        approvedBy: user.uid,
+        approvedBy: user?.uid,
       });
 
       await fetchData();
@@ -193,14 +219,14 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleRejectPayment = async (request: any) => {
+  const handleRejectPayment = async (request: PaymentRequestData) => {
     const reason = prompt("Reason for rejection (optional):");
 
     try {
       await updateDoc(doc(db, "paymentRequests", request.id), {
         status: "rejected",
         rejectedAt: new Date(),
-        rejectedBy: user.uid,
+        rejectedBy: user?.uid,
         rejectionReason: reason || "No reason provided",
       });
 
@@ -260,7 +286,7 @@ export default function AdminDashboard() {
     ? registrations.filter((r) => r.eventId === selectedEventForResults)
     : [];
 
-  const groupedBySlot = eventRegistrations.reduce((acc: any, reg: any) => {
+  const groupedBySlot = eventRegistrations.reduce((acc: Record<number, RegistrationData[]>, reg) => {
     const slot = reg.slot || 0;
     if (!acc[slot]) acc[slot] = [];
     acc[slot].push(reg);
@@ -489,10 +515,10 @@ export default function AdminDashboard() {
               {Object.keys(groupedBySlot).sort((a, b) => Number(a) - Number(b)).map((slot) => (
                 <div key={slot} className="bg-gray-900 p-4 rounded-lg">
                   <h3 className="font-semibold text-lg mb-3 text-purple-300">
-                    Team {slot} ({groupedBySlot[slot].length} players)
+                    Team {slot} ({groupedBySlot[Number(slot)].length} players)
                   </h3>
                   <ul className="space-y-2">
-                    {groupedBySlot[slot].map((reg: any) => (
+                    {groupedBySlot[Number(slot)].map((reg) => (
                       <li
                         key={reg.id}
                         className="flex justify-between items-center bg-gray-800 p-3 rounded"
@@ -507,7 +533,7 @@ export default function AdminDashboard() {
                           )}
                         </div>
                         <button
-                          onClick={() => handleUpdateResult(reg.id, reg.position)}
+                          onClick={() => handleUpdateResult(reg.id, reg.position || null)}
                           className="flex items-center gap-1 bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-sm"
                         >
                           <Award size={14} /> {reg.position ? "Update" : "Set"} Position
