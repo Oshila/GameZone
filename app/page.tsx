@@ -10,7 +10,6 @@ import {
   ChevronRight,
   Menu,
   X,
-  Star,
   Check,
   ArrowRight,
   Gamepad2,
@@ -80,29 +79,6 @@ const Homepage = () => {
     },
   ];
 
-  const testimonials = [
-    {
-      name: "Chibuike A.",
-      role: "Pro Gamer",
-      comment:
-        "Best platform for competitive gaming in Nigeria. Smooth registration and timely events!",
-      rating: 5,
-    },
-    {
-      name: "Amina O.",
-      role: "FIFA Champion",
-      comment:
-        "Won my first tournament here. The organization is top-notch and payments are instant.",
-      rating: 5,
-    },
-    {
-      name: "David M.",
-      role: "Team Captain",
-      comment:
-        "Great community and well-organized events. Highly recommend for all gamers!",
-      rating: 5,
-    },
-  ];
 
   const pricingPlans = [
     {
@@ -475,7 +451,7 @@ const Homepage = () => {
           <div>
             <h4 className="text-white font-bold text-xl mb-4">GameVerse</h4>
             <p className="text-gray-400">
-              Nigeria's premier platform for gaming tournaments and sports competitions.
+              {"Nigeria's premier platform for gaming tournaments and sports competitions."}
             </p>
           </div>
           <div>
