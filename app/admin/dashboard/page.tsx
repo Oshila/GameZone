@@ -73,7 +73,7 @@ interface PaymentRequestData extends DocumentData {
   createdAt?: { toDate?: () => Date } | Date | null;
 }
 
-export default function AdminDashboard(): JSX.Element {
+export default function AdminDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [events, setEvents] = useState<EventData[]>([]);
