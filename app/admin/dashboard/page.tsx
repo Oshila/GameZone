@@ -137,12 +137,12 @@ export default function AdminDashboard() {
       getDocs(collection(db, "paymentRequests")),
     ]);
 
-    setEvents(eventsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as EventData) })));
-    setRegistrations(regsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as RegistrationData) })));
-    setAllUsers(usersSnap.docs.map((d) => ({ id: d.id, ...(d.data() as UserData) })));
-    setPaymentRequests(
-      requestsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as PaymentRequestData) }))
-    );
+    setEvents(eventsSnap.docs.map((d) => ({ ...(d.data() as EventData), id: d.id })));
+setRegistrations(regsSnap.docs.map((d) => ({ ...(d.data() as RegistrationData), id: d.id })));
+setAllUsers(usersSnap.docs.map((d) => ({ ...(d.data() as UserData), id: d.id })));
+setPaymentRequests(
+  requestsSnap.docs.map((d) => ({ ...(d.data() as PaymentRequestData), id: d.id }))
+);
   };
 
   const handleLogout = async (): Promise<void> => {
