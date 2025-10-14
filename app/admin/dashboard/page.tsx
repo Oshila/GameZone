@@ -403,11 +403,13 @@ setPaymentRequests(
 
           <ul className="space-y-3">
             {pendingRequests.map((request) => {
-              const createdAt =
+              type FirestoreTimestamp = { toDate: () => Date };
+
+const createdAt =
   typeof request.createdAt === "object" &&
   request.createdAt !== null &&
-  typeof (request.createdAt as any).toDate === "function"
-    ? (request.createdAt as any).toDate()
+  "toDate" in (request.createdAt as Record<string, unknown>)
+    ? (request.createdAt as FirestoreTimestamp).toDate()
     : request.createdAt instanceof Date
     ? request.createdAt
     : null;
