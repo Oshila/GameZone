@@ -424,8 +424,8 @@ const createdAt =
                     <p className="text-sm text-gray-400">User: {request.userEmail}</p>
                     <p className="text-sm text-green-400">Price: ₦{request.eventPrice}</p>
                     <p className="text-xs text-gray-500">
-                      Requested: {createdAtDate ? createdAtDate.toLocaleString() : "Recently"}
-                    </p>
+  Requested: {createdAt ? createdAt.toLocaleString() : "Recently"}
+</p>
                   </div>
 
                   {/* Dropdown manage menu */}
