@@ -176,38 +176,41 @@ export default function DashboardPage() {
     }
   };
 
-  const handleRequestPayment = async (event: Event) => {
-    if (!user) return;
-
-    const existingRequest = paymentRequests[event.id];
-    if (existingRequest && existingRequest.status === "pending") {
-      alert("You already have a pending payment request for this event.");
+const handleRequestPayment = async (event: EventData) => {
+  try {
+    if (!user) {
+      alert("Please log in first");
       return;
     }
 
-    try {
-      await addDoc(collection(db, "paymentRequests"), {
-        userId: user.uid,
-        userEmail: user.email,
-        eventId: event.id,
-        eventTitle: event.title,
-        eventPrice: event.price,
-        status: "pending",
-        createdAt: serverTimestamp(),
-      });
+    setLoadingEventId(event.id);
 
-      const message = encodeURIComponent(
-        `🔔 New Payment Request\n\nUser: ${user.email}\nEvent: ${event.title}\nPrice: ₦${event.price}\n\nPlease approve from admin dashboard.`
-      );
-      window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${message}`, "_blank");
+    const adminNumber = "2349057612217"; // actual admin number (no "+" sign)
 
-      alert("✅ Payment request sent! Please wait for admin approval.");
-      await fetchPaymentRequests(user.uid);
-    } catch (error) {
-      console.error("Error requesting payment:", error);
-      alert("❌ Failed to send payment request. Please try again.");
-    }
-  };
+    // Save the request first
+    await addDoc(collection(db, "paymentRequests"), {
+      userId: user.uid,
+      eventId: event.id,
+      eventTitle: event.title,
+      eventPrice: event.price,
+      status: "pending",
+      createdAt: new Date(),
+    });
+
+    // ✅ Open WhatsApp directly after successful request
+    const message = `Hello Admin 👋\nI've just made a payment request for the event: "${event.title}".\nPlease confirm my payment details.`;
+    const whatsappUrl = `https://wa.me/${adminNumber}?text=${encodeURIComponent(message)}`;
+
+    window.open(whatsappUrl, "_blank"); // opens WhatsApp in new tab or app
+
+    alert("Payment request sent successfully!");
+  } catch (error) {
+    console.error("Error requesting payment:", error);
+    alert("Failed to request payment. Please try again.");
+  } finally {
+    setLoadingEventId(null);
+  }
+};
 
   const handleRegister = async (event: Event) => {
     if (!user) return;
