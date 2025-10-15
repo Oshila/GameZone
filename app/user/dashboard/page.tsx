@@ -176,7 +176,7 @@ export default function DashboardPage() {
     }
   };
 
-const handleRequestPayment = async (event: EventData) => {
+const handleRequestPayment = async (event: Event) => {
   try {
     if (!user) {
       alert("Please log in first");
