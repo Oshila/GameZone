@@ -51,6 +51,7 @@ export default function DashboardPage() {
   const [userRegistrations, setUserRegistrations] = useState<Record<string, UserRegistration>>({});
   const [allRegistrations, setAllRegistrations] = useState<UserRegistration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingEventId, setLoadingEventId] = useState<string | null>(null);
   const [registering, setRegistering] = useState(false);
   const [activeTab, setActiveTab] = useState<"tournaments" | "results">("tournaments");
   const router = useRouter();
