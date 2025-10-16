@@ -177,37 +177,43 @@ export default function DashboardPage() {
   };
 
   const handleRequestPayment = async (event: Event) => {
-    if (!user) return;
+  if (!user) return;
 
-    const existingRequest = paymentRequests[event.id];
-    if (existingRequest && existingRequest.status === "pending") {
-      alert("You already have a pending payment request for this event.");
-      return;
+  const existingRequest = paymentRequests[event.id];
+  if (existingRequest && existingRequest.status === "pending") {
+    alert("You already have a pending payment request for this event.");
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "paymentRequests"), {
+      userId: user.uid,
+      userEmail: user.email,
+      eventId: event.id,
+      eventTitle: event.title,
+      eventPrice: event.price,
+      status: "pending",
+      createdAt: serverTimestamp(),
+    });
+
+    const message = encodeURIComponent(
+      `🔔 New Payment Request\n\nUser: ${user.email}\nEvent: ${event.title}\nPrice: ₦${event.price}\n\nPlease approve from admin dashboard.`
+    );
+
+    const whatsappLink = `https://api.whatsapp.com/send?phone=${ADMIN_WHATSAPP}&text=${message}`;
+    if (/Mobi|Android/i.test(navigator.userAgent)) {
+      window.location.href = whatsappLink;
+    } else {
+      window.open(whatsappLink, "_blank");
     }
 
-    try {
-      await addDoc(collection(db, "paymentRequests"), {
-        userId: user.uid,
-        userEmail: user.email,
-        eventId: event.id,
-        eventTitle: event.title,
-        eventPrice: event.price,
-        status: "pending",
-        createdAt: serverTimestamp(),
-      });
-
-      const message = encodeURIComponent(
-        `🔔 New Payment Request\n\nUser: ${user.email}\nEvent: ${event.title}\nPrice: ₦${event.price}\n\nPlease approve from admin dashboard.`
-      );
-      window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${message}`, "_blank");
-
-      alert("✅ Payment request sent! Please wait for admin approval.");
-      await fetchPaymentRequests(user.uid);
-    } catch (error) {
-      console.error("Error requesting payment:", error);
-      alert("❌ Failed to send payment request. Please try again.");
-    }
-  };
+    alert("✅ Payment request sent! Please wait for admin approval.");
+    await fetchPaymentRequests(user.uid);
+  } catch (error) {
+    console.error("Error requesting payment:", error);
+    alert("❌ Failed to send payment request. Please try again.");
+  }
+};
 
   const handleRegister = async (event: Event) => {
     if (!user) return;
